@@ -1,6 +1,6 @@
 ---
 name: typescript-patterns
-description: TypeScript strict patterns and best practices. Trigger: When implementing or refactoring TypeScript in .ts/.tsx (types, interfaces, generics, const maps, type guards, removing any, tightening unknown).
+description: TypeScript strict patterns and best practices. When implementing or refactoring TypeScript in .ts/.tsx (types, interfaces, generics, const maps, type guards, removing any, tightening unknown).
 ---
 
 ## Const Types Pattern (REQUIRED)
