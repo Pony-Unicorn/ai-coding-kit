@@ -20,18 +20,17 @@
 ### 工作流 [OpenSpec](https://jimmysong.io/zh/book/ai-handbook/sdd/openspec)
 
 - 目标：把“想法”变成“可验证的交付物”
-- 需求清晰化：范围、目标、约束、验收标准
-- 技术调研（必要时）并建立风险清单
-- 用 `/opsx:explore` 讨论方案与假设
-- 用 `/opsx:new` 形成提案
-- 用 `/opsx:continue` 拆分任务
-- 用 `/opsx:apply` 实现
-- 用 `/opsx:verify` 验证
-- 用 MCP 做测试或验证辅助
-- 用 Skill 做一次 Code Review
-- 关键功能必须人工 Review + 测试
-- 用 Skill 生成 Git Commit
-- 用 `/opsx:archive` 归档为项目文档
+- 需求清晰化：范围、目标、约束、验收标准（产出：需求说明）
+- 技术调研与风险清单（必要时）（产出：风险清单）
+- 用 `/opsx:explore` 讨论方案与假设（产出：方案概要）
+- 用 `/opsx:new` 形成提案（产出：提案）
+- 用 `/opsx:continue` 拆分任务（产出：任务清单）
+- 用 `/opsx:apply` 实现（产出：代码变更）
+- 用 `/opsx:verify` 验证（产出：测试或验证结果）
+- MCP 辅助测试或验证（可选）
+- Review 规范：Skill Code Review + 关键功能人工 Review/测试
+- Git：用 Skill 生成 Commit
+- 用 `/opsx:archive` 归档（产出：项目文档）
 
 ### Session 管理
 
@@ -65,7 +64,7 @@
 - 使用 skills 安装 `pnpm dlx skills add Pony-Unicorn/ai-coding-kit`
 - 如需要 gemini 安装 `gemini skills install .agents/skills --scope workspace`
 
-### Recommend Skills
+### Coding
 
 - [ui-ux-pro-max-skill](https://github.com/nextlevelbuilder/ui-ux-pro-max-skill?tab=readme-ov-file#using-cli-recommended): 专业 UI/UX 设计能力，需要单独命令行安装
 - `git-commit`: Git 提交助手
@@ -75,6 +74,10 @@
 - `golang-patterns`: Go 最佳实践
 - `database-design`: 数据库设计
 - 关闭 Claude Co-author：在 `settings.json` 中设置 `{"attribution": {"commits": false,"pullRequests": false}}`
+
+### 文本创作
+
+- https://github.com/blader/humanizer 消除 AI 生成写作痕迹
 
 ## MCP
 
@@ -105,6 +108,10 @@
 **前端**
 
 - Figma MCP: 设计稿与组件协作 https://www.figma.com/mcp-catalog/
+
+## Plugin
+
+- Superpowers https://github.com/obra/superpowers 提供完整软件开发工作流程
 
 ## 技巧
 
