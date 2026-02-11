@@ -17,9 +17,22 @@
   - [AGENTS.md 规范](https://jimmysong.io/zh/book/ai-handbook/sdd/agents/)
 - 配置常用 MCP、Skills、Commands，保证信息与工具可随时调用
 
-### 工作流 [OpenSpec](https://jimmysong.io/zh/book/ai-handbook/sdd/openspec)
+### 工作流（Superpowers 为主，OpenSpec 为补）
 
 - 目标：把“想法”变成“可验证的交付物”
+- 默认策略：日常开发只用 Superpowers 的 Plan + 测试，效率优先
+- 关键时刻：涉及核心业务逻辑（例如收银台逻辑、权限校验）时，跑 `/opsx:proposal` 让 AI 复核一次
+- 任务收尾：需要长期维护或高频变更时，追加一句“把这次改动的核心逻辑记入 specs/ 目录”
+
+**适用场景**
+
+- 需求不清晰或需要先梳理
+- 跨模块联动或依赖外部系统
+- 风险高、失败代价大、需要分阶段验证
+- 需要制定统一规范或团队工作流
+
+**OpenSpec 补充流程（必要时）**
+
 - 需求清晰化：范围、目标、约束、验收标准（产出：需求说明）
 - 技术调研与风险清单（必要时）（产出：风险清单）
 - 用 `/opsx:explore` 讨论方案与假设（产出：方案概要）
