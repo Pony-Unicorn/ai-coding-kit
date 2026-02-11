@@ -66,7 +66,13 @@
 
 ### Coding
 
-- [ui-ux-pro-max-skill](https://github.com/nextlevelbuilder/ui-ux-pro-max-skill?tab=readme-ov-file#using-cli-recommended): 专业 UI/UX 设计能力，需要单独命令行安装
+- 前端 UI 设计
+  - [ui-ux-pro-max-skill](https://github.com/nextlevelbuilder/ui-ux-pro-max-skill?tab=readme-ov-file#using-cli-recommended): 专业 UI/UX 设计能力，需要单独命令行安装
+  - [frontend-design](https://skills.sh/anthropics/skills/frontend-design) UI 设计，轻量
+- SEO
+  - [seo-audit](https://skills.sh/coreyhaines31/marketingskills/seo-audit) SEO 审计
+  - [audit-website](https://skills.sh/squirrelscan/skills/audit-website) SEO、技术、性能和安全问题的审计
+- [agent-browser](https://skills.sh/vercel-labs/agent-browser/agent-browser) 使用 agent-browser 进行浏览器自动化
 - `git-commit`: Git 提交助手
 - `code-review`: TypeScript、Python、Swift、Kotlin、Go 的全面代码审查
 - `security-review`: 身份验证、用户输入、机密信息、API 端点与支付类功能的安全检查
@@ -113,15 +119,27 @@
 
 - Superpowers https://github.com/obra/superpowers 提供完整软件开发工作流程
 
+## Agents
+
+- 官方参考 https://code.claude.com/docs/zh-CN/sub-agents
+
 ## 技巧
 
 - 修改策略：小步提交，避免大爆改
 - 复杂需求先出“最小可行方案”，再扩展，避免一次性大改
 - 任何不确定的关键点先写成假设，验证后再进入实现
 - 找开源方案时用 DeepWiki MCP：它对 GitHub 项目有更强的搜索与分析能力，适合快速判断是否匹配需求
+- 良好的提示词 https://jimmysong.io/zh/book/ai-handbook/prompt/overview/
 
 ## 常见问题汇总
 
 - 国内代理问题访问不了：Claude Code 不支持 SOCKS 代理，只能设置 http/https
 - 示例：
   - export https_proxy=http://127.0.0.1:7897 http_proxy=http://127.0.0.1:7897
+
+## 参考
+
+- https://skills.sh/
+- https://skillsmp.com/
+- https://www.aitmpl.com/skills
+- https://mcpservers.org/
