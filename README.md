@@ -102,7 +102,7 @@
 
 ### 官方文档
 
-- [Claude Code](https://code.claude.com/docs/zh-CN/mcp)
+- [Claude Code 安装](https://code.claude.com/docs/zh-CN/mcp#%E9%A1%B9%E7%9B%AE%E8%8C%83%E5%9B%B4)
 - [Codex](https://developers.openai.com/codex/mcp)
 - [Gemini](https://geminicli.com/docs/tools/mcp-server/#configuration-structure)
 - [OpenCode](https://opencode.ai/docs/mcp-servers/)
