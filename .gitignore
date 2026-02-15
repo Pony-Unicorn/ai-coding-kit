@@ -2,3 +2,7 @@
 
 # misc
 .DS_Store
+
+# web build
+web/node_modules/
+web/dist/
