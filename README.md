@@ -13,7 +13,8 @@
 - 护栏内容：代码规范、命名规则、目录结构、错误处理与返回约定、日志与异常风格、基础示例、推荐写法
 - 必须有 `AGENTS.md`: 明确技术栈、目录结构、代码风格、禁止事项、输出格式等
 - 参考：
-  - [前端推荐](https://github.com/Pony-Unicorn/react-template/blob/main/AGENTS.md)
+  - [react 前端推荐](https://github.com/Pony-Unicorn/react-template/blob/main/AGENTS.md)
+  - [轻量 Alpine.js 在 web 目录](https://download-directory.github.io/?url=https%3A%2F%2Fgithub.com%2FPony-Unicorn%2Fai-coding-kit%2Ftree%2Fmain%2Fweb)
   - [AGENTS.md 规范](https://jimmysong.io/zh/book/ai-handbook/sdd/agents/)
 - 配置常用 MCP、Skills、Commands，保证信息与工具可随时调用
 
