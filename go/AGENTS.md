@@ -1,4 +1,4 @@
-# Developer & Agent Guidelines
+# Developer & Agent Guidelines (LLM-Friendly)
 
 > AI Agent 在生成、修改、审查本目录下的任何代码前，必须遵守以下全部规则。
 

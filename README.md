@@ -16,6 +16,14 @@
   - [react 前端推荐](https://github.com/Pony-Unicorn/react-template/blob/main/AGENTS.md)
   - [轻量 Alpine.js 在 web 目录](https://download-directory.github.io/?url=https%3A%2F%2Fgithub.com%2FPony-Unicorn%2Fai-coding-kit%2Ftree%2Fmain%2Fweb)
   - [AGENTS.md 规范](https://jimmysong.io/zh/book/ai-handbook/sdd/agents/)
+  - Gemini Cli 特殊配置 .gemini/settings.json
+  ```json
+  {
+    "context": {
+      "fileName": ["AGENTS.md", "GEMINI.md"]
+    }
+  }
+  ```
 - 配置常用 MCP、Skills、Commands，保证信息与工具可随时调用
 
 ### 工作流（Superpowers 为主，OpenSpec 为补）
