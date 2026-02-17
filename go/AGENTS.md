@@ -1,206 +1,221 @@
-# Developer & Agent Guidelines (LLM-Friendly)
+# Go Developer & Agent Guidelines (LLM-Friendly)
 
-> AI Agent 在生成、修改、审查本目录下的任何代码前，必须遵守以下全部规则。
+> 目标：确保项目中的 Go 代码变更满足“分层依赖正确、可编译、可测试、可维护”。
 
-## 核心技术栈
+## 1. 适用范围
 
-- **语言**: Go
-- **框架**: Fiber (github.com/gofiber/fiber/v2)
-- **校验**: go-playground/validator v10
-- **ORM**: GORM (MySQL)
-- **配置**: Viper + `config.yaml`
-- **日志**: Zerolog (github.com/rs/zerolog)
-- **错误处理**: `error` + 统一错误响应（Fiber ErrorHandler + AppError）
-- **请求库**: Resty (github.com/go-resty/resty/v2)
-- **测试**: Go `testing` + `httptest`
+- 适用于项目内所有 Go 代码的新增、修改、审查。
+- 若规则冲突，优先级：分层依赖 > 正确性 > 可测试性 > 可维护性。
 
-## 编码规范
+## 2. 核心技术栈
 
-### 通用准则
+- Go
+- Fiber v3 (`github.com/gofiber/fiber/v3`)
+- validator v10 (`github.com/go-playground/validator/v10`)
+- GORM + MySQL
+- Viper（`env + config.yaml`）
+- Zerolog
+- Resty
+- `testing` + `httptest`
 
-- **并发与异步**: 避免滥用 goroutine；`context.Context` 仅用于外部调用/DB 超时与取消控制。
-- **模块规范**: 使用 Go Modules。包路径清晰、稳定。
-- **类型安全**: 所有请求必须绑定并校验；响应结构体必须显式定义。
-- **常量位置**: 遵循“就近原则”，常量放在使用它的包内。跨包共享时，放在对应领域包的 `constants.go`，避免集中到巨大的全局常量包。
-- **命名规范**:
-  - URL 路径: `kebab-case` (例如 `/portfolio-tracker`)。
-  - 包/目录名: 全小写，避免 `-`，优先简短名。
-  - 包名避免与类型名重复（避免 `api.Api`、`store.Store` 这类命名）。
-  - Store 命名: 以 `Store` 结尾 (例如 `UserStore`)。
-  - SQL 文件: `<时间戳>_<语义化文件名>.sql` (例如 `20240212120000_create_posts.up.sql`)。
+## 3. 架构与职责（MUST）
 
-### 架构模式 (极简)
+```text
+cmd/api/           程序入口
+internal/config/   配置加载与校验
+internal/api/      路由与 Handler（协议层）
+internal/service/  业务规则与事务编排
+internal/store/    数据访问（GORM）
+internal/models/   数据库模型
+internal/dto/      请求/响应结构
+internal/infra/    apperr/log/response/httpclient
+```
 
-- **cmd**: 应用入口（主程序），位于 `cmd/api/`。
-- **config**: 配置加载与校验，位于 `internal/config/`。
-- **api**: 路由注册与请求处理，位于 `internal/api/`（不放业务逻辑，不持久化状态）。
-- **store**: 数据访问封装，位于 `internal/store/`，直接使用 GORM。
-- **models**: 数据模型，位于 `internal/models/`。
-- **dto**: 请求/响应结构体，位于 `internal/dto/`。
-- **infra**: 基础设施，按子包拆分，位于 `internal/infra/`。
-  - `infra/log`: 日志封装
-  - `infra/response`: 统一响应
-  - `infra/errors`: 错误封装
-  - `infra/httpclient`: HTTP 工具（Resty）
+职责边界：
+- `api`：绑定、校验、调用 service、返回响应。
+- `service`：业务规则、事务、错误语义转换。
+- `store`：持久化访问，不处理 HTTP 语义。
+- 说明：本规范中的 `service` 指业务层（application layer），不同于 Fiber v3 的 `Services` 生命周期机制。
 
-### DTO 与模型边界
+依赖方向：
+- 只允许 `api -> service -> store -> models`
+- `api` 可依赖：`dto`、`infra/response`、`infra/apperr`、`infra/log`
+- `service` 可依赖：`store`、`models`、`infra/apperr`、`infra/httpclient`
+- `store` 仅依赖：`models` 与基础库
 
-- `dto` 仅包含请求/响应结构体。
-- `models` 仅包含 DB 模型。
-- `dto` 不包含 GORM tag，`models` 不包含 `json/validate` tag。
+禁止：
+- handler 直接访问 DB/GORM
+- service 返回 `fiber.Map` 等 HTTP 表达结构
+- store 引入 `fiber`、`dto`、`infra/response`
+- `models` 作为对外协议结构（`json`/`validate` tag）
 
-## 📁 项目目录结构与任务映射
+## 4. 编码规范（SHOULD，带 * 为 MUST）
 
-AI Agent 在执行任务时应遵循以下路径映射：
+- 包名小写、简短、无中划线；避免 stutter naming（如 `store.Store`）。
+- URL path 使用 `kebab-case`。
+- *`context.Context` 透传，通常为第一个参数；不存入结构体字段。*
+- *Fiber v3 的 handler 可直接将 `c` 作为 `context.Context` 传给 service。*
+- *`fiber.Ctx` 仅在请求生命周期内有效；异步任务请改传 `c.Context()`。*
+- *DTO 与 Model 严格隔离：`dto` 不用 `gorm` tag，`models` 不用 `json`/`validate` tag。*
+- 错误处理建议：返回 `error` 并 `%w` 包装，使用 `errors.Is/As` 分类。
+- *对外仅返回安全错误信息，内部细节只用于日志；业务错误统一走 `infra/apperr`。*
+- *日志禁止输出敏感信息（密码、token、密钥、隐私数据）。*
+- 错误日志建议包含 `request_id`、`path`、`method`、`code`（可得时）。
 
-| 任务类型          | 涉及目录/文件          | 职责说明                                  |
-| :---------------- | :--------------------- | :---------------------------------------- |
-| **应用入口**      | `cmd/api/main.go`      | 读取配置、初始化依赖、启动服务            |
-| **配置加载**      | `internal/config/`     | Viper 读取项目根目录 `config.yaml` 并校验 |
-| **数据模型**      | `internal/models/`     | 使用 GORM 定义 Model 结构与关联           |
-| **请求/响应 DTO** | `internal/dto/`        | 使用 validator 进行校验标签定义           |
-| **实现数据访问**  | `internal/store/`      | 创建 `*_store.go`，封装数据库访问         |
-| **开发 API 接口** | `internal/api/`        | 路由注册与请求处理逻辑放在一起            |
-| **编写测试用例**  | `internal/**/_test.go` | 使用 Go 原生测试框架编写单元/集成测试     |
-| **通用基础设施**  | `internal/infra/*`     | log/response/errors/httpclient 等子包     |
-| **配置示例文件**  | `config.example.yaml`  | 声明所需的配置项，Agent 应参考此文件      |
+## 5. 配置规范（SHOULD，带 * 为 MUST）
 
-## 依赖方向
+- *优先级：`env > config.yaml > default`*
+- 显式默认值：`viper.SetDefault(...)`
+- 建议流程：
+  1. `viper.SetConfigFile("config.yaml")`
+  2. `viper.AutomaticEnv()`
+  3. `viper.ReadInConfig()`（env-only 可容忍 `ConfigFileNotFoundError`）
+  4. `viper.Unmarshal(&cfg)`
+- *启动时校验关键配置（端口、DSN 等），缺失即失败退出。*
+- `config.example.yaml` 与真实配置字段保持一致。
 
-- `internal/api/` 可依赖 `internal/dto/`、`internal/store/`、`internal/infra/`。
-- `internal/store/` 仅依赖 `internal/models/` 与基础库，不得依赖 `internal/api/` 或 `internal/dto/`。
-- `internal/models/` 不依赖上层包。
+## 6. HTTP 与外部调用（SHOULD，带 * 为 MUST）
 
-## 配置规范
+- *Handler 必须完成 Body/Query/Params 绑定与校验（Fiber v3 使用 `c.Bind()`）。*
+- *成功响应返回 DTO，不返回裸 `map`。*
+- *使用全局 Fiber `ErrorHandler` 统一错误出口。*
+- *必须启用 `recover` 中间件（Fiber 默认不自动 recover panic）。*
+- *外部 HTTP 必须封装在 `internal/infra/httpclient`。*
+- Resty 建议配置超时、重试、request-id 透传。
+- 默认仅幂等请求可重试；非幂等请求需显式禁用或使用幂等键。
+- *禁止在 handler 直接调用第三方 HTTP。*
+- 建议中间件顺序（注册要靠前）：`requestid -> logger -> recover -> 业务中间件/路由`。
 
-- **配置来源**: 仅使用项目根目录 `config.yaml`。
-- **加载流程**: `viper.ReadInConfig()` -> `viper.Unmarshal(&cfg)`。
-- **必填校验**: 启动时校验关键字段（如 DB DSN、服务端口等），缺失则直接退出并打印错误。
-- **示例一致性**: `config.example.yaml` 必须与 `config.yaml` 字段保持一致。
-- **测试配置**: 测试可使用 `config.test.yaml` 或通过注入配置覆盖。
+### 6.1 Fiber v3 绑定与验证（推荐）
 
-## 校验与绑定最佳实践
+- 推荐在 `fiber.New(fiber.Config{...})` 中配置 `StructValidator`（`validator/v10`）。
+- handler 中通过 `c.Bind()` 做绑定+验证，避免分散手工校验逻辑。
+- 参数来源按场景明确调用：`c.Bind().Body(...)`、`c.Bind().Query(...)`、`c.Bind().URI(...)`。
 
-### 1. 强制完整性
+## 7. 数据层与 API 约束（SHOULD，带 * 为 MUST）
 
-- **请求验证**: 必须对 `Body`、`Query` 或 `Params` 进行绑定和校验。
-- **响应序列化**: 必须定义响应结构体，避免直接返回 `map`。
+- *Store 方法必须接收 `context.Context`。*
+- *事务由 service 层控制。*
+- *生产环境禁用 `AutoMigrate`。*
+- 明确处理 `gorm.ErrRecordNotFound`。
+- REST 状态码遵循语义（200/201/400/404/409/500）。
+- 分页参数统一（`page`、`page_size`）。
 
-### 2. 命名与导出
+## 8. 交付与验收（MUST）
+
+执行约束：
+- 不得虚构包、函数、文件路径。
+- 新增代码必须遵守本规范目录与依赖方向。
+- 占位模块路径（如 `<your-module>`）必须替换为 `go.mod` 的真实 `module`。
+
+质量门禁：
+
+```bash
+go fmt ./...
+go test ./...
+go vet ./...
+```
+
+可用时执行：
+
+```bash
+goimports -w <files>
+golangci-lint run
+```
+
+说明：本地未安装 `golangci-lint` 可跳过，但 CI 必须通过。
+
+交付说明必须包含：
+1. 修改文件路径
+2. 修改动机
+3. 风险与回滚点
+4. 验证结果（执行命令与通过情况）
+
+提交前自检（仅验收关键项）：
+- [ ] 架构与依赖方向无违规（见第 3 节）
+- [ ] 协议层 / 业务层 / 数据层职责未越界（见第 3、6、7 节）
+- [ ] 错误与日志满足安全要求（见第 4、6 节）
+- [ ] 已启用 `recover`，并使用全局 `ErrorHandler`
+- [ ] 质量门禁命令已执行并通过
+- [ ] 交付说明四要素已完整提供
+
+## 9. 附录：最小示例（精简）
+
+说明：
+- 示例仅用于分层与依赖参考，省略了 import 与部分类型定义，不是直接复制模板。
+- `fiber.Ctx` 只在 handler 生命周期内有效；若要在异步流程中使用 context，请在 handler 内获取 `c.Context()` 后再传递。
 
 ```go
-// internal/dto/users.go
+// app setup (Fiber v3 best-practice baseline)
+type structValidator struct{ v *validator.Validate }
+
+func (sv *structValidator) Validate(out any) error { return sv.v.Struct(out) }
+
+app := fiber.New(fiber.Config{
+	StructValidator: &structValidator{v: validator.New()},
+	ErrorHandler:    NewErrorHandler(), // 统一错误出口
+})
+
+app.Use(requestid.New())
+app.Use(logger.New())  // logger 注册要靠前
+app.Use(recover.New()) // Fiber 默认不会自动 recover panic
+```
+
+```go
+// dto
+package dto
+
 type CreateUserRequest struct {
-  Name  string `json:"name" validate:"required,min=2"`
-  Email string `json:"email" validate:"required,email"`
+	Name string `json:"name" validate:"required,min=2"`
 }
 
 type UserResponse struct {
-  ID    uint   `json:"id"`
-  Name  string `json:"name"`
-  Email string `json:"email"`
+	ID uint `json:"id"`
+}
+
+type ErrorResponse struct {
+	Message string `json:"message"`
 }
 ```
 
-## Store 实现模板
-
-创建新 Store 时必须遵循以下模式：
-
 ```go
-// internal/store/items_store.go
+// store
 package store
 
-import (
-  "context"
-
-  "gorm.io/gorm"
-)
-
-type ItemsStore struct {
-  db *gorm.DB
-}
-
-func NewItemsStore(db *gorm.DB) *ItemsStore {
-  return &ItemsStore{db: db}
-}
-
-func (s *ItemsStore) FindByID(ctx context.Context, id uint) (*Item, error) {
-  var item Item
-  if err := s.db.WithContext(ctx).First(&item, id).Error; err != nil {
-    return nil, err
-  }
-  return &item, nil
+func (s *UserStore) Create(ctx context.Context, u *models.User) error {
+	return s.db.WithContext(ctx).Create(u).Error
 }
 ```
-
-### Store 规则
-
-- Store 方法必须接收 `context.Context`。
-- 事务由上层控制并注入（例如将 `*gorm.DB` 传入 Store 或在调用时使用 `db.WithContext(ctx)` 的事务对象）。
-
-## 错误处理规范
-
-- **Store 层**: 直接返回 `error`，不在此层拼装 HTTP 响应。
-- **业务逻辑**: 将业务错误包装为 `AppError`（携带 `Code/Status/Message`）。
-- **HTTP 处理层**:
-  1. 记录错误日志（结构化日志优先）。
-  2. 使用统一错误响应函数返回 `{ "message": "..." }`。
-  3. 对已知业务错误返回明确状态码（400/404/409）。
-
-示例错误类型：
 
 ```go
-// internal/infra/errors.go
-type AppError struct {
-  Code   string
-  Status int
-  Err    error
+// service
+package service
+
+func (s *UserService) Create(ctx context.Context, req dto.CreateUserRequest) (*dto.UserResponse, error) {
+	u := &models.User{Name: req.Name}
+	if err := s.users.Create(ctx, u); err != nil {
+		return nil, err
+	}
+	return &dto.UserResponse{ID: u.ID}, nil
 }
 ```
-
-## Resty 使用规范
-
-- 统一在 `internal/infra/httpclient` 作为 HTTP 工具封装第三方调用。
-- 必须设置超时、重试策略、Trace 或 Request ID 透传。
-- 禁止在 HTTP 处理层中直接调用 Resty。
-- 对外暴露接口，便于测试替换。
-
-示例：
 
 ```go
-// internal/infra/httpclient/partner_client.go
-package httpclient
+// handler
+package api
 
-import (
-  "time"
-
-  "github.com/go-resty/resty/v2"
-)
-
-type PartnerClient struct {
-  http *resty.Client
-}
-
-func NewPartnerClient(baseURL string) *PartnerClient {
-  c := resty.New().
-    SetBaseURL(baseURL).
-    SetTimeout(3 * time.Second)
-  return &PartnerClient{http: c}
+func (h *UserHandler) Create(c fiber.Ctx) error {
+	var req dto.CreateUserRequest
+	if err := c.Bind().Body(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(dto.ErrorResponse{Message: "invalid request"})
+	}
+	if err := h.validator.Struct(req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(dto.ErrorResponse{Message: "validation failed"})
+	}
+	resp, err := h.svc.Create(c, req)
+	if err != nil {
+		return err
+	}
+	return c.Status(fiber.StatusCreated).JSON(resp)
 }
 ```
-
-## 测试规范
-
-- 测试文件命名: `*_test.go`。
-- 运行测试: `go test ./...`。
-- 模拟请求: 使用 `httptest.NewRequest` + Fiber `app.Test`。
-
-## GORM/MySQL 实践建议
-
-- 生产环境禁用 `AutoMigrate`。
-- 配置连接池参数（最大连接数、空闲连接数、连接最大生命周期）。
-
-## API 设计规范 (RESTful)
-
-- **成功响应**: 直接返回数据对象。
-- **状态码**: 遵循标准 (200 OK, 201 Created, 400 Bad Request, 404 Not Found 等)。
