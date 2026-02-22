@@ -18,8 +18,8 @@
 - 禁止使用 ES Modules（`type="module"`、`import/export`）。
 - 禁止引入构建流程（如 Vite/Webpack、本地打包产物、`node_modules` 依赖运行时）。
 - 禁止创建独立 `.css` 文件。
-- 禁止在页面内自实现 Toast；只能调用 `shared.js` 的 `toast()`。
-- 禁止"读操作"使用全局 Toast（详见术语定义）。
+- 禁止在页面内自实现 InlineAlert；只能调用 `shared.js` 的 `toast()`。
+- 禁止"读操作"使用全局 InlineAlert（详见术语定义）。
 - 禁止从零创建新页面；必须以 `template.html` 复制为起点。
 - 禁止直接修改 `template.html`（除非用户明确要求）。
 
@@ -80,7 +80,7 @@ const userApi = {
   - 失败：使用内联 `alert-error` + 重试按钮。
   - 不得使用全局 Toast。
 - **写操作**：
-  - 成功/失败反馈统一调用 `toast()`。
+  - 成功/失败反馈统一调用 `toast()`，渲染为导航与主内容之间的 InlineAlert，3 秒后自动消失，用户也可手动关闭。
   - 提交按钮必须有 loading 态并 `disabled`。
 - **弹窗（Modal）**：
   - 使用 DaisyUI `<dialog>` + Alpine `x-ref`，不使用全局 ID。
@@ -120,5 +120,6 @@ const userApi = {
 - [ ] API 封装是否都在 `shared.js`。
 - [ ] 页面内是否未直接调用 `axios.*(...)`（应改为调用 `shared.js` 中的 API 封装）。
 - [ ] `<script>` JS 是否 `< 1000` 行；若 `>= 800` 是否已评估抽离。
-- [ ] 读操作是否未使用全局 Toast。
+- [ ] 读操作是否未使用全局 InlineAlert（`toast()`）。
 - [ ] 写操作是否统一调用 `toast()` 且按钮有 loading + disabled。
+- [ ] InlineAlert 容器（`$store.alert.visible`）是否保留在 `<main>` 之前。

@@ -30,25 +30,30 @@ const userApi = {
   getById: (id) => api.get(`/users/${id}`),
 };
 
-// 4. Alpine Store (Toast)
-const TOAST_MAX = 5;
+// 4. Alpine Store (Inline Alert)
+let _alertTimer = null;
 
 document.addEventListener("alpine:init", () => {
-  Alpine.store("toast", {
-    items: [],
+  Alpine.store("alert", {
+    message: "",
+    type: "success",
+    visible: false,
     show(msg, type = "success") {
-      const id = Date.now();
-      this.items.push({ id, message: msg, type });
-      if (this.items.length > TOAST_MAX) {
-        this.items.shift();
-      }
-      setTimeout(() => {
-        this.items = this.items.filter((t) => t.id !== id);
+      clearTimeout(_alertTimer);
+      this.message = msg;
+      this.type = type;
+      this.visible = true;
+      _alertTimer = setTimeout(() => {
+        this.visible = false;
       }, 3000);
+    },
+    dismiss() {
+      clearTimeout(_alertTimer);
+      this.visible = false;
     },
   });
 });
 
 // 5. Global Utils
-const toast = (msg, type) => Alpine.store("toast").show(msg, type);
+const toast = (msg, type) => Alpine.store("alert").show(msg, type);
 const formatDate = (date) => dayjs(date).format("YYYY-MM-DD");

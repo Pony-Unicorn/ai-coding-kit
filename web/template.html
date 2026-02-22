@@ -41,6 +41,20 @@
   <body class="min-h-screen bg-base-200">
     <!-- featurePage must match the Alpine.data name below -->
     <div x-data="featurePage">
+      <!-- Inline Alert (do not remove) — placed between nav and main -->
+      <div
+        x-show="$store.alert.visible"
+        x-transition
+        :class="'alert alert-' + $store.alert.type"
+        class="rounded-none"
+        role="alert"
+      >
+        <span x-text="$store.alert.message"></span>
+        <button class="btn btn-ghost btn-sm btn-square ml-auto" @click="$store.alert.dismiss()">
+          <iconify-icon icon="lucide:x"></iconify-icon>
+        </button>
+      </div>
+
       <!-- Content -->
       <main class="p-6"></main>
 
@@ -59,14 +73,6 @@
       </dialog>
       -->
 
-      <!-- Toast (do not remove) -->
-      <div class="toast toast-top toast-center">
-        <template x-for="t in $store.toast.items" :key="t.id">
-          <div x-transition :class="'alert alert-' + t.type">
-            <span x-text="t.message"></span>
-          </div>
-        </template>
-      </div>
     </div>
 
     <script>
