@@ -165,3 +165,7 @@
 - https://skillsmp.com/
 - https://www.aitmpl.com/skills
 - https://mcpservers.org/
+
+## Todo
+- https://github.com/EveryInc/compound-engineering-plugin
+- https://github.com/garrytan/gstack

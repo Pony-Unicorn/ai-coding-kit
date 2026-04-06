@@ -1,1 +1,6 @@
-{ "attribution": { "commits": false, "pullRequests": false } }
+{
+  "attribution": {
+    "commits": false,
+    "pullRequests": false
+  }
+}
